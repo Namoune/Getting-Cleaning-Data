@@ -1,65 +1,56 @@
-library(plyr)
+# Part 1 - Merge the training and the test sets to create one data set
 
-x_train <- read.table("train/X_train.txt")
-y_train <- read.table("train/y_train.txt")
-subject_train <- read.table("train/subject_train.txt")
+x_train_tbl <- read.table("train/X_train.txt")
+x_test_tbl <- read.table("test/X_test.txt")
+v1 <- rbind(x_train_tbl, x_test_tbl)
 
-x_test <- read.table("test/X_test.txt")
-y_test <- read.table("test/y_test.txt")
-subject_test <- read.table("test/subject_test.txt")
+x_train_tbl <- read.table("train/subject_train.txt")
+x_test_tbl <- read.table("test/subject_test.txt")
+v2 <- rbind(x_train_tbl, x_test_tbl)
 
-# create 'x' data set
-x_data <- rbind(x_train, x_test)
+x_train_tbl <- read.table("train/y_train.txt")
+x_test_tbl <- read.table("test/y_test.txt")
+v3 <- rbind(x_train_tbl, x_test_tbl)
 
-# create 'y' data set
-y_data <- rbind(y_train, y_test)
+# Part 2 - Extracts only the measurements on the mean and standard deviation for each measurement
 
-# create 'subject' data set
-subject_data <- rbind(subject_train, subject_test)
+features_tbl <- read.table("features.txt")
+ptr_sel <- grep("-mean\\(\\)|-std\\(\\)", features_tbl[, 2])
+v1 <- v1[, ptr_sel]
+names(v1) <- features_tbl[ptr_sel, 2]
+names(v1) <- gsub("\\(|\\)", "", names(v1))
+names(v1) <- tolower(names(v1))
 
-# Step 2
-# Extract only the measurements on the mean and standard deviation for each measurement
-###############################################################################
+# Part 3 - Uses descriptive activity names to name the activities in the data set
 
-features <- read.table("features.txt")
+activities_tbl <- read.table("activity_labels.txt")
+activities_tbl[, 2] = gsub("_", "", tolower(as.character(activities_tbl[, 2])))
+v2[,1] = activities_tbl[v2[,1], 2]
+names(v2) <- "activity"
 
-# get only columns with mean() or std() in their names
-mean_and_std_features <- grep("-(mean|std)\\(\\)", features[, 2])
+# 4. Appropriately labels the data set with descriptive activity names.
 
-# subset the desired columns
-x_data <- x_data[, mean_and_std_features]
+names(v3) <- "subject"
+cleaned_data <- cbind(v3, v2, v1)
+write.table(cleaned_data, "cleaned.txt")
 
-# correct the column names
-names(x_data) <- features[mean_and_std_features, 2]
+# Part 5 - From the data set in step 4, 
+# creates a second, independent tidy data set with the average of each variable for each activity and each subject
 
-# Step 3
-# Use descriptive activity names to name the activities in the data set
-###############################################################################
+idSubjects = length(unique(v3)[,1])
+idActivities = length(activities_tbl[,1])
+idCols = dim(cleaned_data)[2]
+uniqueSubjects = unique(v3)[,1]
+tidy_data = cleaned_data[1:(idSubjects*idActivities), ]
 
-activities <- read.table("activity_labels.txt")
-
-# update values with correct activity names
-y_data[, 1] <- activities[y_data[, 1], 2]
-
-# correct column name
-names(y_data) <- "activity"
-
-# Step 4
-# Appropriately label the data set with descriptive variable names
-###############################################################################
-
-# correct column name
-names(subject_data) <- "subject"
-
-# bind all the data in a single data set
-all_data <- cbind(x_data, y_data, subject_data)
-
-# Step 5
-# Create a second, independent tidy data set with the average of each variable
-# for each activity and each subject
-###############################################################################
-
-# 66 <- 68 columns but last two (activity & subject)
-averages_data <- ddply(all_data, .(subject, activity), function(x) colMeans(x[, 1:66]))
-
-write.table(averages_data, "averages_data.txt", row.name=FALSE)
+row = 1
+for (v3 in 1:idSubjects) {
+  for (a in 1:idActivities) {
+    tidy_data[row, 1] = uniqueSubjects[v3]
+    tidy_data[row, 2] = activities_tbl[a, 2]
+    tmp <- cleaned_data[cleaned_data$subject==v3 & cleaned_data$activity==activities_tbl[a, 2], ]
+    tidy_data[row, 3:idCols] <- colMeans(tmp[, 3:idCols])
+    row = row+1
+  }
+}
+write.table(tidy_data, "tidy.txt")
