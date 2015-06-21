@@ -52,4 +52,4 @@ for (s in 1:numSubjects) {
     row = row+1
   }
 }
-write.table(result, "tiny.txt")
+write.table(result, file = "tidydata.txt",row.name=FALSE)
