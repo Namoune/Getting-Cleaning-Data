@@ -1,56 +1,55 @@
-# Part 1 - Merge the training and the test sets to create one data set
+# 1. Merges the training and the test sets to create one data set.
 
-x_train_tbl <- read.table("train/X_train.txt")
-x_test_tbl <- read.table("test/X_test.txt")
-v1 <- rbind(x_train_tbl, x_test_tbl)
+x_train <- read.table("train/X_train.txt")
+x_test <- read.table("test/X_test.txt")
+D1 <- rbind(x_train, x_test)
 
-x_train_tbl <- read.table("train/subject_train.txt")
-x_test_tbl <- read.table("test/subject_test.txt")
-v2 <- rbind(x_train_tbl, x_test_tbl)
+subject_train <- read.table("train/subject_train.txt")
+subject_test <- read.table("test/subject_test.txt")
+S <- rbind(subject_train, subject_test)
 
-x_train_tbl <- read.table("train/y_train.txt")
-x_test_tbl <- read.table("test/y_test.txt")
-v3 <- rbind(x_train_tbl, x_test_tbl)
+y_train <- read.table("train/y_train.txt")
+y_test <- read.table("test/y_test.txt")
+D2 <- rbind(y_train, y_test)
 
-# Part 2 - Extracts only the measurements on the mean and standard deviation for each measurement
+# 2. Extracts only the measurements on the mean and standard deviation for each measurement.
 
 features_tbl <- read.table("features.txt")
-ptr_sel <- grep("-mean\\(\\)|-std\\(\\)", features_tbl[, 2])
-v1 <- v1[, ptr_sel]
-names(v1) <- features_tbl[ptr_sel, 2]
-names(v1) <- gsub("\\(|\\)", "", names(v1))
-names(v1) <- tolower(names(v1))
+ptr_select <- grep("-mean\\(\\)|-std\\(\\)", features_tbl[, 2])
+D1 <- D1[, ptr_select]
+names(D1) <- features_tbl[ptr_select, 2]
+names(D1) <- gsub("\\(|\\)", "", names(D1))
+names(D1) <- tolower(names(D1))
 
-# Part 3 - Uses descriptive activity names to name the activities in the data set
+# 3. Uses descriptive activity names to name the activities in the data set.
 
 activities_tbl <- read.table("activity_labels.txt")
 activities_tbl[, 2] = gsub("_", "", tolower(as.character(activities_tbl[, 2])))
-v2[,1] = activities_tbl[v2[,1], 2]
-names(v2) <- "activity"
+D2[,1] = activities_tbl[D2[,1], 2]
+names(D2) <- "activity"
 
 # 4. Appropriately labels the data set with descriptive activity names.
 
-names(v3) <- "subject"
-cleaned_data <- cbind(v3, v2, v1)
-write.table(cleaned_data, "cleaned.txt")
+names(S) <- "subject"
+cleaned_tbl <- cbind(S, D2, D1)
+write.table(cleaned_tbl, "clean_data.txt")
 
-# Part 5 - From the data set in step 4, 
-# creates a second, independent tidy data set with the average of each variable for each activity and each subject
+# 5. Creates a 2nd, independent tidy data set with the average of each variable for each activity and each subject.
 
-idSubjects = length(unique(v3)[,1])
-idActivities = length(activities_tbl[,1])
-idCols = dim(cleaned_data)[2]
-uniqueSubjects = unique(v3)[,1]
-tidy_data = cleaned_data[1:(idSubjects*idActivities), ]
+uniqueSubjects = unique(S)[,1]
+numSubjects = length(unique(S)[,1])
+numActivities = length(activities_tbl[,1])
+numCols = dim(cleaned_tbl)[2]
+result = cleaned_tbl[1:(numSubjects*numActivities), ]
 
 row = 1
-for (v3 in 1:idSubjects) {
-  for (x in 1:idActivities) {
-    tidy_data[row, 1] = uniqueSubjects[v3]
-    tidy_data[row, 2] = activities_tbl[x, 2]
-    temporary <- cleaned_data[cleaned_data$subject==v3 & cleaned_data$activity==activities_tbl[x, 2], ]
-    tidy_data[row, 3:idCols] <- colMeans(temporary[, 3:idCols])
+for (s in 1:numSubjects) {
+  for (a in 1:numActivities) {
+    result[row, 1] = uniqueSubjects[s]
+    result[row, 2] = activities_tbl[a, 2]
+    X <- cleaned_tbl[cleaned_tbl$subject==s & cleaned_tbl$activity==activities_tbl[a, 2], ]
+    result[row, 3:numCols] <- colMeans(X[, 3:numCols])
     row = row+1
   }
 }
-write.table(tidy_data, "tidy.txt")
+write.table(result, "tiny.txt")
