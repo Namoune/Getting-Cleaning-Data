@@ -45,11 +45,11 @@ tidy_data = cleaned_data[1:(idSubjects*idActivities), ]
 
 row = 1
 for (v3 in 1:idSubjects) {
-  for (a in 1:idActivities) {
+  for (x in 1:idActivities) {
     tidy_data[row, 1] = uniqueSubjects[v3]
-    tidy_data[row, 2] = activities_tbl[a, 2]
-    tmp <- cleaned_data[cleaned_data$subject==v3 & cleaned_data$activity==activities_tbl[a, 2], ]
-    tidy_data[row, 3:idCols] <- colMeans(tmp[, 3:idCols])
+    tidy_data[row, 2] = activities_tbl[x, 2]
+    temporary <- cleaned_data[cleaned_data$subject==v3 & cleaned_data$activity==activities_tbl[x, 2], ]
+    tidy_data[row, 3:idCols] <- colMeans(temporary[, 3:idCols])
     row = row+1
   }
 }
