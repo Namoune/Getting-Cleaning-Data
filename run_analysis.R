@@ -1,3 +1,6 @@
+# Getting and Cleaning Data Course Project
+# R Script that does the following
+
 # 1. Merges the training and the test sets to create one data set.
 
 x_train <- read.table("train/X_train.txt")
@@ -34,7 +37,7 @@ names(S) <- "subject"
 cleaned_tbl <- cbind(S, D2, D1)
 write.table(cleaned_tbl, "clean_data.txt")
 
-# 5. Creates a 2nd, independent tidy data set with the average of each variable for each activity and each subject.
+# 5. From the data set in step 4, creates a second, independent tidy data set with the average of each variable for each activity and each subject.
 
 uniqueSubjects = unique(S)[,1]
 numSubjects = length(unique(S)[,1])
